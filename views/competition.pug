@@ -4,5 +4,9 @@ html
   head
     script(src="https://cdn.tailwindcss.com")
   body
-    h2 Registrirane utakmice
+    h2 Natjecanje "#{competition.name}"
+    hr
+    ul
+      each game, index in games
+        li #{game.homeTeam} vs #{game.awayTeam}
 

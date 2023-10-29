@@ -8,8 +8,9 @@ import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { Competition, Game, GameType } from "./src/schema";
+import { eq } from "drizzle-orm";
 
-const sql = postgres(process.env.DB_URL!, { ssl: true })
+const sql = postgres(process.env.DB_URL!, { ssl: true });
 const db = drizzle(sql);
 
 await migrate(db, { migrationsFolder: "drizzle" });
@@ -89,16 +90,15 @@ const generatePair = (players: string[]) => {
 
 app.get("/", async (req, res) => {
   const user = req.oidc.user;
-  console.log("user", req.oidc.user)
+  console.log("user", req.oidc.user);
   return res.render("index.pug", {
     user: user?.name,
   });
 });
 
-
 app.post("/save", requiresAuth(), async (req, res) => {
   if (!req.oidc.isAuthenticated()) {
-    res.redirect("/login")
+    res.redirect("/login");
   }
   const data = parse(SaveDataSchema, req.body);
   if (!winTypeRegex.test(data.winType))
@@ -107,14 +107,17 @@ app.post("/save", requiresAuth(), async (req, res) => {
   if (players.length !== 4 && players.length !== 6 && players.length !== 8)
     throw new Error("Podržano samo između 4 i 8 natjecatelja");
 
-  const competition = await db.insert(Competition).values({
-    ownerId: req.oidc.user!.sid,
-    name: data.name
-  }).returning()
+  const competition = await db
+    .insert(Competition)
+    .values({
+      ownerId: req.oidc.user!.sid,
+      name: data.name,
+    })
+    .returning();
 
   const competitionId = competition[0].id;
 
-  const matches = generatePair(players).map(pair => ({
+  const matches = generatePair(players).map((pair) => ({
     competitionId,
     homeTeam: pair[0],
     awayTeam: pair[1],
@@ -126,9 +129,18 @@ app.post("/save", requiresAuth(), async (req, res) => {
 });
 
 app.get("/competition/:id", async (req, res) => {
-  console.log("Natjecanje", req.params.id)
-  return res.render("competition.pug")
-})
+  console.log("Natjecanje", req.params.id);
+  const [competition, games] = await Promise.all([db
+    .select()
+    .from(Competition)
+    .where(eq(Competition.id, +req.params.id)).then(c => c[0]),
+
+  db.select().from(Game).where(eq(Game.competitionId, +req.params.id))]);
+
+  return res.render("competition.pug", {
+    competition, games
+  });
+});
 
 if (externalUrl) {
   const hostname = "0.0.0.0"; //ne 127.0.0.1
