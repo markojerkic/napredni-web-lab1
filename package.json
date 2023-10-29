@@ -1,7 +1,6 @@
 {
   "name": "lab1",
   "module": "index.ts",
-  "type": "module",
   "scripts": {
     "build": "esbuild index.ts --platform=node --bundle --minify --outfile=build/index.js",
     "start": "node build/index.js"
