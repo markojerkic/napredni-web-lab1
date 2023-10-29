@@ -16,7 +16,7 @@ dotenv.config();
 const sql = postgres(process.env.DB_URL!, { ssl: true });
 const db = drizzle(sql);
 
-await migrate(db, { migrationsFolder: "drizzle" });
+migrate(db, { migrationsFolder: "drizzle" });
 
 const app = express();
 
