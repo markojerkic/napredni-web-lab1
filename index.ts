@@ -9,6 +9,9 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { Competition, Game, Winner } from "./src/schema";
 import { eq } from "drizzle-orm";
+import dotenv from "dotenv"
+
+dotenv.config();
 
 const sql = postgres(process.env.DB_URL!, { ssl: true });
 const db = drizzle(sql);
