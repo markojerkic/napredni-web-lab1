@@ -1,0 +1,11 @@
+//- index.pug
+doctype html
+html
+  head
+    script(src="https://cdn.tailwindcss.com")
+  body
+    h2 Registrirane utakmice
+    ul
+      each match, index in matches
+        li Kolo #{index}: #{match[0]} vs #{match[1]}
+

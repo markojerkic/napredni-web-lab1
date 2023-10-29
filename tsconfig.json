@@ -15,7 +15,7 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-    "outDir": "./build",
+    "outDir": "./dist",
     "types": [
       "bun-types"
     ]

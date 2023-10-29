@@ -2,12 +2,22 @@
 doctype html
 html
   head
+    script(src="https://cdn.tailwindcss.com")
   body
-    h1 Markov lab
-    p Welcome to my super lame site.
+    form(action="/save" method="POST" class="m-5 mx-auto grid grid-cols-5 gap-2 max-w-xl")
+      label(for="name") Naziv natjecanja
+      input(type="text" class="col-span-4 rounded-lg border border-black p-4 text-sm shadow-sm" name="name" placeholder="Naziv natjecanja")
+
+      label(for="playerList") Popis natjecatelja
+      textarea(class="col-span-4 rounded-lg border border-black p-4 text-sm shadow-sm" name="playerList" placeholder="Popis natjecatelja" rows="5")
+
+      label(for="winType") Vrsta bodovanja
+      input(type="text" class="col-span-4 rounded-lg border border-black p-4 text-sm shadow-sm" name="winType" placeholder="Vrsta bodovanja u obliku pobjeda/remi/poraz" pattern="\\d+\\/\\d+\\/\\d+")
+
+      button(type="submit" class="col-span-5 inline-block rounded border border-indigo-600 bg-indigo-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500") Spremite
     #user
       if user
-        div Korisnik #user
+        div Korisnik #{user}
       else
         div Nema korisnika
-        a(href=`${authServer}`) Prijavite se
+        a(href="/login") Prijavite se
