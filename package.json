@@ -1,0 +1,16 @@
+{
+  "name": "lab1",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "babel-preset-solid": "^1.8.4",
+    "fastify": "^4.24.3",
+    "solid-js": "^1.8.4"
+  }
+}
