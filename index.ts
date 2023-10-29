@@ -130,15 +130,116 @@ app.post("/save", requiresAuth(), async (req, res) => {
 
 app.get("/competition/:id", async (req, res) => {
   console.log("Natjecanje", req.params.id);
-  const [competition, games] = await Promise.all([db
+  const [competition, games] = await Promise.all([
+    db
+      .select()
+      .from(Competition)
+      .where(eq(Competition.id, +req.params.id))
+      .then((c) => c[0]),
+
+    db
+      .select()
+      .from(Game)
+      .where(eq(Game.competitionId, +req.params.id))
+      .then((games) =>
+        games.map((game) => ({
+          ...game,
+          homeTeamColor:
+            game.winner === "home"
+              ? "bg-blue-200"
+              : game.winner === "draw"
+              ? "bg-yellow-200"
+              : "bg-red-200",
+          awayTeamColor:
+            game.winner === "away"
+              ? "bg-blue-200"
+              : game.winner === "draw"
+              ? "bg-yellow-200"
+              : "bg-red-200",
+        })),
+      ),
+  ]);
+
+  const isOwner = competition.ownerId === req.oidc.user?.sid;
+  return res.render("competition.pug", {
+    competition,
+    games,
+    isOwner,
+  });
+});
+
+app.post("/competition/:id/edit", async (req, res) => {
+  const competition = await db
     .select()
     .from(Competition)
-    .where(eq(Competition.id, +req.params.id)).then(c => c[0]),
+    .where(eq(Competition.id, +req.params.id))
+    .then((c) => c[0]);
+  const isOwner = competition.ownerId === req.oidc.user?.sid;
+  if (!isOwner) {
+    return res.redirect("/");
+  }
+  return res.render("edit.pug", {
+    competition,
+  });
+});
 
-  db.select().from(Game).where(eq(Game.competitionId, +req.params.id))]);
+app.get("/competition/:id/edit", async (req, res) => {
+  const [competition, games] = await Promise.all([
+    db
+      .select()
+      .from(Competition)
+      .where(eq(Competition.id, +req.params.id))
+      .then((c) => c[0]),
 
+    db.select().from(Game).where(eq(Game.competitionId, +req.params.id)),
+  ]);
+  const isOwner = competition.ownerId === req.oidc.user?.sid;
+  if (!isOwner) {
+    return res.redirect("/");
+  }
+  return res.render("edit.pug", {
+    competition,
+    games,
+  });
+});
+
+app.get("/competition/:id", async (req, res) => {
+  console.log("Natjecanje", req.params.id);
+  const [competition, games] = await Promise.all([
+    db
+      .select()
+      .from(Competition)
+      .where(eq(Competition.id, +req.params.id))
+      .then((c) => c[0]),
+
+    db
+      .select()
+      .from(Game)
+      .where(eq(Game.competitionId, +req.params.id))
+      .then((games) =>
+        games.map((game) => ({
+          ...game,
+          homeTeamColor:
+            game.winner === "home"
+              ? "bg-blue-200"
+              : game.winner === "draw"
+              ? "bg-yellow-200"
+              : "bg-red-200",
+          awayTeamColor:
+            game.winner === "away"
+              ? "bg-blue-200"
+              : game.winner === "draw"
+              ? "bg-yellow-200"
+              : "bg-red-200",
+        })),
+      ),
+  ]);
+
+  const isOwner = competition.ownerId === req.oidc.user?.sid;
   return res.render("competition.pug", {
-    competition, games
+    competition,
+    games,
+    isOwner,
   });
 });
 
@@ -158,7 +259,7 @@ if (externalUrl) {
       },
       app,
     )
-    .listen(port, function() {
+    .listen(port, function () {
       console.log(`Server running at https://localhost:${port}/`);
     });
 }

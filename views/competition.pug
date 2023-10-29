@@ -6,7 +6,14 @@ html
   body
     h2 Natjecanje "#{competition.name}"
     hr
-    ul
+    ul(class="flex flex-col gap-2")
       each game, index in games
-        li #{game.homeTeam} vs #{game.awayTeam}
+        li(class="inline-flex gap-2")
+          span
+            b(class=`${game.homeTeamColor}`) #{game.homeTeam}
+            span vs
+            b(class=`${game.awayTeamColor}`)  #{game.awayTeam}
+    #isOwner
+      if isOwner
+        a(href=`/competition/${competition.id}/edit` class="inline-block rounded border border-indigo-600 bg-indigo-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500") Uredi rezultate
 

@@ -11,7 +11,7 @@ export const Game = pgTable("game", {
   id: serial("id").primaryKey(),
   homeTeam: varchar("homeTeam", { length: 255 }).notNull(),
   awayTeam: varchar("awayTeam", { length: 255 }).notNull(),
-  winner: Winner("winner"),
+  winner: Winner("winner").default("draw"),
   competitionId: integer("competitionId").references(() => Competition.id).notNull()
 })
 

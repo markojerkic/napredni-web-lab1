@@ -43,6 +43,13 @@
       "when": 1698616899530,
       "tag": "0005_friendly_marauders",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1698618038211,
+      "tag": "0006_long_bill_hollister",
+      "breakpoints": true
     }
   ]
 }
