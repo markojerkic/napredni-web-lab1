@@ -4,6 +4,15 @@ import fs from "node:fs";
 import https from "node:https";
 import bodyParser from "body-parser";
 import { object, parse, regex, string } from "valibot";
+import postgres from "postgres";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { Competition, Game, GameType } from "./src/schema";
+
+const sql = postgres(process.env.DB_URL!, { ssl: true })
+const db = drizzle(sql);
+
+await migrate(db, { migrationsFolder: "drizzle" });
 
 const app = express();
 
@@ -25,14 +34,6 @@ const config: ConfigParams = {
 
 app.use(auth(config));
 app.use(bodyParser.urlencoded({ extended: false }));
-
-app.get("/", async (req, res) => {
-  const user = req.oidc.user;
-  console.log(user?.name);
-  return res.render("index.pug", {
-    user: user?.name,
-  });
-});
 
 const winTypeRegex = new RegExp("\\d+\\/\\d+\\/\\d+");
 const SaveDataSchema = object({
@@ -86,19 +87,48 @@ const generatePair = (players: string[]) => {
   return pairs;
 };
 
+app.get("/", async (req, res) => {
+  const user = req.oidc.user;
+  console.log("user", req.oidc.user)
+  return res.render("index.pug", {
+    user: user?.name,
+  });
+});
+
+
 app.post("/save", requiresAuth(), async (req, res) => {
+  if (!req.oidc.isAuthenticated()) {
+    res.redirect("/login")
+  }
   const data = parse(SaveDataSchema, req.body);
   if (!winTypeRegex.test(data.winType))
     throw new Error("Win type not formated correctly");
   const players = data.playerList.split(/[\,\n]+/);
   if (players.length !== 4 && players.length !== 6 && players.length !== 8)
     throw new Error("Podržano samo između 4 i 8 natjecatelja");
-  const matches = generatePair(players);
 
-  return res.render("save.pug", {
-    matches,
-  });
+  const competition = await db.insert(Competition).values({
+    ownerId: req.oidc.user!.sid,
+    name: data.name
+  }).returning()
+
+  const competitionId = competition[0].id;
+
+  const matches = generatePair(players).map(pair => ({
+    competitionId,
+    homeTeam: pair[0],
+    awayTeam: pair[1],
+  }));
+
+  await db.insert(Game).values(matches);
+
+  return res.redirect(`/competition/${competitionId}`);
 });
+
+app.get("/competition/:id", async (req, res) => {
+  console.log("Natjecanje", req.params.id)
+  return res.render("competition.pug")
+})
 
 if (externalUrl) {
   const hostname = "0.0.0.0"; //ne 127.0.0.1
@@ -116,7 +146,7 @@ if (externalUrl) {
       },
       app,
     )
-    .listen(port, function () {
+    .listen(port, function() {
       console.log(`Server running at https://localhost:${port}/`);
     });
 }

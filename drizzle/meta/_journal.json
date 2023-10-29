@@ -1,0 +1,48 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1698615604926,
+      "tag": "0000_romantic_ulik",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1698616165881,
+      "tag": "0001_oval_thanos",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1698616343853,
+      "tag": "0002_sticky_union_jack",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1698616529968,
+      "tag": "0003_big_redwing",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1698616869235,
+      "tag": "0004_exotic_the_enforcers",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1698616899530,
+      "tag": "0005_friendly_marauders",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "id": "1341145b-ed46-4370-8100-ff67d2c8edcf",
+  "prevId": "cbc68c9b-7e65-442f-8085-2c053af68778",
+  "tables": {
+    "competition": {
+      "name": "competition",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ownerId": {
+          "name": "ownerId",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "game": {
+      "name": "game",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "homeTeam": {
+          "name": "homeTeam",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "round": {
+          "name": "round",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "competitionId": {
+          "name": "competitionId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "round_index": {
+          "name": "round_index",
+          "columns": [
+            "competitionId"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "game_competitionId_competition_id_fk": {
+          "name": "game_competitionId_competition_id_fk",
+          "tableFrom": "game",
+          "tableTo": "competition",
+          "columnsFrom": [
+            "competitionId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {
+    "winner": {
+      "name": "winner",
+      "values": {
+        "home": "home",
+        "away": "away",
+        "draw": "draw"
+      }
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}
