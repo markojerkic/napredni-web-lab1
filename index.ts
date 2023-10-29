@@ -1,18 +1,33 @@
-// Import the framework and instantiate it
-import Fastify from 'fastify'
-const fastify = Fastify({
-  logger: true
-})
+import express, { Router } from "express";
+import { requiresAuth, ConfigParams, auth } from "express-openid-connect";
+
+const router = Router();
+const app = express();
+
+app.set('view engine', 'pug')
+
+const authServer = process.env.ISSUER_BASE_URL!;
+const config: ConfigParams = {
+  authRequired: false,
+  auth0Logout: true,
+  baseURL: process.env.BASE_URL,
+  clientID: process.env.CLIENT_ID,
+  clientSecret: process.env.SECRET,
+  issuerBaseURL: process.env.ISSUER_BASE_URL,
+};
+
+app.use(auth(config));
 
 // Declare a route
-fastify.get('/', async function handler (request, reply) {
-  return { hello: 'world' }
-})
+app.get("/", async (req, res) => {
+  const user = req.oidc.user;
+  return res.render("index.pug", {
+    user,
+    authServer: authServer,
+  });
+});
 
 // Run the server!
-try {
-  await fastify.listen({ port: 3000 })
-} catch (err) {
-  fastify.log.error(err)
-  process.exit(1)
-}
+app.listen({ port: 3000 }, () => {
+  console.log("Server podignut")
+});

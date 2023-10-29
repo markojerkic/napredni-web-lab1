@@ -1,0 +1,13 @@
+//- index.pug
+doctype html
+html
+  head
+  body
+    h1 Markov lab
+    p Welcome to my super lame site.
+    #user
+      if user
+        div Korisnik #user
+      else
+        div Nema korisnika
+        a(href=`${authServer}`) Prijavite se
