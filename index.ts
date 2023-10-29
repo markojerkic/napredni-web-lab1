@@ -3,11 +3,11 @@ import { ConfigParams, auth, requiresAuth } from "express-openid-connect";
 import fs from "node:fs";
 import https from "node:https";
 import bodyParser from "body-parser";
-import { object, parse, regex, string } from "valibot";
+import { enumType, object, parse, record, string } from "valibot";
 import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { Competition, Game, GameType } from "./src/schema";
+import { Competition, Game, Winner } from "./src/schema";
 import { eq } from "drizzle-orm";
 
 const sql = postgres(process.env.DB_URL!, { ssl: true });
@@ -107,10 +107,15 @@ app.post("/save", requiresAuth(), async (req, res) => {
   if (players.length !== 4 && players.length !== 6 && players.length !== 8)
     throw new Error("Podržano samo između 4 i 8 natjecatelja");
 
+  const points = data.winType.split("/").map(Number);
+
   const competition = await db
     .insert(Competition)
     .values({
-      ownerId: req.oidc.user!.sid,
+      winPoints: `${points[0]!}`,
+      drawPoints: `${points[1]!}`,
+      lossPoints: `${points[2]!}`,
+      ownerId: req.oidc.user!.sid as string,
       name: data.name,
     })
     .returning();
@@ -128,46 +133,7 @@ app.post("/save", requiresAuth(), async (req, res) => {
   return res.redirect(`/competition/${competitionId}`);
 });
 
-app.get("/competition/:id", async (req, res) => {
-  console.log("Natjecanje", req.params.id);
-  const [competition, games] = await Promise.all([
-    db
-      .select()
-      .from(Competition)
-      .where(eq(Competition.id, +req.params.id))
-      .then((c) => c[0]),
-
-    db
-      .select()
-      .from(Game)
-      .where(eq(Game.competitionId, +req.params.id))
-      .then((games) =>
-        games.map((game) => ({
-          ...game,
-          homeTeamColor:
-            game.winner === "home"
-              ? "bg-blue-200"
-              : game.winner === "draw"
-              ? "bg-yellow-200"
-              : "bg-red-200",
-          awayTeamColor:
-            game.winner === "away"
-              ? "bg-blue-200"
-              : game.winner === "draw"
-              ? "bg-yellow-200"
-              : "bg-red-200",
-        })),
-      ),
-  ]);
-
-  const isOwner = competition.ownerId === req.oidc.user?.sid;
-  return res.render("competition.pug", {
-    competition,
-    games,
-    isOwner,
-  });
-});
-
+const GameEditObject = record(enumType(Winner.enumValues))
 app.post("/competition/:id/edit", async (req, res) => {
   const competition = await db
     .select()
@@ -178,9 +144,13 @@ app.post("/competition/:id/edit", async (req, res) => {
   if (!isOwner) {
     return res.redirect("/");
   }
-  return res.render("edit.pug", {
-    competition,
-  });
+
+  const data = parse(GameEditObject, req.body);
+  await Promise.all(Object.entries(data).map(entry =>
+    db.update(Game).set({ winner: entry[1] }).where(eq(Game.id, +entry[0]))
+  ));
+
+  return res.redirect(`/competition/${competition.id}`);
 });
 
 app.get("/competition/:id/edit", async (req, res) => {
@@ -205,6 +175,7 @@ app.get("/competition/:id/edit", async (req, res) => {
 
 app.get("/competition/:id", async (req, res) => {
   console.log("Natjecanje", req.params.id);
+  console.log("tu smo")
   const [competition, games] = await Promise.all([
     db
       .select()
@@ -223,23 +194,84 @@ app.get("/competition/:id", async (req, res) => {
             game.winner === "home"
               ? "bg-blue-200"
               : game.winner === "draw"
-              ? "bg-yellow-200"
-              : "bg-red-200",
+                ? "bg-yellow-200"
+                : "bg-red-200",
           awayTeamColor:
             game.winner === "away"
               ? "bg-blue-200"
               : game.winner === "draw"
-              ? "bg-yellow-200"
-              : "bg-red-200",
+                ? "bg-yellow-200"
+                : "bg-red-200",
         })),
       ),
   ]);
+
+  const teams: Map<string, { name: string, points: number, wins: number, draws: number, losses: number }> = new Map();
+
+  for (let game of games) {
+    let homeTeam = teams.get(game.homeTeam);
+
+    let homePoints = 0;
+    if (game.winner === "home") {
+      homePoints = +competition.winPoints;
+    } else if (game.winner === "draw") {
+      homePoints = +competition.drawPoints;
+    } else if (game.winner === "away") {
+      homePoints = +competition.lossPoints;
+    }
+
+    let awayPoints = 0;
+    if (game.winner === "away") {
+      awayPoints = +competition.winPoints;
+    } else if (game.winner === "draw") {
+      awayPoints = +competition.drawPoints;
+    } else if (game.winner === "home") {
+      awayPoints = +competition.lossPoints;
+    }
+
+    if (!homeTeam) {
+
+      homeTeam = {
+        name: game.homeTeam,
+        points: homePoints,
+        wins: game.winner === "home" ? 1 : 0,
+        draws: game.winner === "draw" ? 1 : 0,
+        losses: game.winner === "away" ? 1 : 0
+      }
+      teams.set(game.homeTeam, homeTeam);
+    } else {
+      homeTeam.points += homePoints;
+    }
+
+    let awayTeam = teams.get(game.awayTeam);
+    if (!awayTeam) {
+      awayTeam = {
+        name: game.awayTeam,
+        points: homePoints,
+        wins: game.winner === "away" ? 1 : 0,
+        draws: game.winner === "draw" ? 1 : 0,
+        losses: game.winner === "home" ? 1 : 0
+      }
+      teams.set(game.awayTeam, awayTeam);
+    } else {
+      awayTeam.points += awayPoints;
+    }
+
+  }
+
+  const table = Object.values(Object.fromEntries(teams.entries()))
+  table.sort((a, b) => {
+    if (a.points > b.points) return -1;
+    if (a.points === b.points) return 0;
+    return 1;
+  })
 
   const isOwner = competition.ownerId === req.oidc.user?.sid;
   return res.render("competition.pug", {
     competition,
     games,
     isOwner,
+    teamsTable: table,
   });
 });
 
@@ -259,7 +291,7 @@ if (externalUrl) {
       },
       app,
     )
-    .listen(port, function () {
+    .listen(port, function() {
       console.log(`Server running at https://localhost:${port}/`);
     });
 }

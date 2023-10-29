@@ -6,12 +6,12 @@ html
   body
     h2 Uredite rezultate natjecanja "#{competition.name}"
     hr
-    form(action=`/competition/${competition.id}` method="POST" class="m-5 mx-auto grid grid-cols-3 gap-2 max-w-xl")
+    form(action=`/competition/${competition.id}/edit` method="POST" class="m-5 mx-auto grid grid-cols-3 gap-2 max-w-xl")
       each game, index in games
         li(class="inline-flex gap-2 col-span-2")
-          span(class="col-span-2 w-full")
+          span(class="col-span-2 w-full gap-2")
             b #{game.homeTeam}
-            span vs
+            span  vs
             b  #{game.awayTeam}
           select(name=`${game.id}`)
             option(class="col-span-1 w-full" value="home" selected= game.winner == "homeTeam") #{game.homeTeam}

@@ -6,14 +6,35 @@ html
   body
     h2 Natjecanje "#{competition.name}"
     hr
-    ul(class="flex flex-col gap-2")
+    ul(class="grid grid-cols-1 my-2 gap-2 mx-auto")
       each game, index in games
-        li(class="inline-flex gap-2")
-          span
+        li(class="mx-auto gap-2")
+          span(class="flex flex-row gap-2")
             b(class=`${game.homeTeamColor}`) #{game.homeTeam}
             span vs
             b(class=`${game.awayTeamColor}`)  #{game.awayTeam}
-    #isOwner
       if isOwner
-        a(href=`/competition/${competition.id}/edit` class="inline-block rounded border border-indigo-600 bg-indigo-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500") Uredi rezultate
+        a(href=`/competition/${competition.id}/edit` class="mx-auto inline-block rounded border border-indigo-600 bg-indigo-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500") Uredi rezultate
+    div(class="mx-auto p-2 m-2 border max-w-xs")
+      h3 Legenda
+      ul
+        li(class="bg-blue-200") Pobjednik
+        li(class="bg-yellow-200") Neriješeno
+        li(class="bg-red-200") Gubitnik
+
+    table(class="mx-auto min-w-full mx-4 border border-gray-200")
+      tr(class=" border border-gray-200")
+        th(class=" border border-gray-200") Natjecatelj
+        th(class=" border border-gray-200") Bodovi
+        th(class=" border border-gray-200") Pobjede
+        th(class=" border border-gray-200") Neriješeni
+        th(class=" border border-gray-200") Izgubljeni
+      each team, index in teamsTable
+        tr
+          td(class=" border border-gray-200") #{team.name}
+          td(class=" border border-gray-200") #{team.points}
+          td(class=" border border-gray-200") #{team.wins}
+          td(class=" border border-gray-200") #{team.draws}
+          td(class=" border border-gray-200") #{team.losses}
+
 

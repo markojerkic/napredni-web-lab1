@@ -1,0 +1,125 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "id": "19bb7a25-b778-4822-b473-c02b48d42a5f",
+  "prevId": "ede8e9d9-3e41-430e-9379-db24de8fdad7",
+  "tables": {
+    "competition": {
+      "name": "competition",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "ownerId": {
+          "name": "ownerId",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "winPoints": {
+          "name": "winPoints",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "drawPoints": {
+          "name": "drawPoints",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lossPoints": {
+          "name": "lossPoints",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "game": {
+      "name": "game",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "homeTeam": {
+          "name": "homeTeam",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "awayTeam": {
+          "name": "awayTeam",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "winner": {
+          "name": "winner",
+          "type": "winner",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'draw'"
+        },
+        "competitionId": {
+          "name": "competitionId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "game_competitionId_competition_id_fk": {
+          "name": "game_competitionId_competition_id_fk",
+          "tableFrom": "game",
+          "tableTo": "competition",
+          "columnsFrom": [
+            "competitionId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {
+    "winner": {
+      "name": "winner",
+      "values": {
+        "home": "home",
+        "away": "away",
+        "draw": "draw"
+      }
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}
