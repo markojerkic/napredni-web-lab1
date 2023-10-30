@@ -93,6 +93,7 @@ const generatePair = (players: string[]) => {
 
 app.get("/", async (req, res) => {
   const user = req.oidc.user;
+  console.log("user", user)
   let competitions: {
     name: string;
     id: number;
