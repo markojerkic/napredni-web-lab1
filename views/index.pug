@@ -17,7 +17,11 @@ html
       button(type="submit" class="col-span-5 inline-block rounded border border-indigo-600 bg-indigo-600 px-12 py-3 text-sm font-medium text-white hover:bg-transparent hover:text-indigo-600 focus:outline-none focus:ring active:text-indigo-500") Spremite
     #user
       if user
-        div Korisnik #{user}
+        div Moja natjecanja:
+        ul(class="ml-2")
+          each comp of competitions
+            li
+              a(href=`/competition/${comp.id}`) #{comp.name}
       else
         div Nema korisnika
         a(href="/login") Prijavite se

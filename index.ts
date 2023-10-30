@@ -9,7 +9,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { Competition, Game, Winner } from "./src/schema";
 import { eq } from "drizzle-orm";
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -93,9 +93,27 @@ const generatePair = (players: string[]) => {
 
 app.get("/", async (req, res) => {
   const user = req.oidc.user;
-  console.log("user", req.oidc.user);
+  let competitions: {
+    name: string;
+    id: number;
+    ownerId: string;
+    winPoints: string;
+    drawPoints: string;
+    lossPoints: string;
+  }[] = [];
+
+  if (user && req.oidc.isAuthenticated()) {
+    await db
+      .select()
+      .from(Competition)
+      .where(eq(Competition.ownerId, user.sid))
+      .then((comps) => {
+        competitions.push(...comps);
+      });
+  }
   return res.render("index.pug", {
     user: user?.name,
+    competitions,
   });
 });
 
@@ -136,7 +154,7 @@ app.post("/save", requiresAuth(), async (req, res) => {
   return res.redirect(`/competition/${competitionId}`);
 });
 
-const GameEditObject = record(enumType(Winner.enumValues))
+const GameEditObject = record(enumType(Winner.enumValues));
 app.post("/competition/:id/edit", async (req, res) => {
   const competition = await db
     .select()
@@ -149,9 +167,11 @@ app.post("/competition/:id/edit", async (req, res) => {
   }
 
   const data = parse(GameEditObject, req.body);
-  await Promise.all(Object.entries(data).map(entry =>
-    db.update(Game).set({ winner: entry[1] }).where(eq(Game.id, +entry[0]))
-  ));
+  await Promise.all(
+    Object.entries(data).map((entry) =>
+      db.update(Game).set({ winner: entry[1] }).where(eq(Game.id, +entry[0])),
+    ),
+  );
 
   return res.redirect(`/competition/${competition.id}`);
 });
@@ -178,7 +198,7 @@ app.get("/competition/:id/edit", async (req, res) => {
 
 app.get("/competition/:id", async (req, res) => {
   console.log("Natjecanje", req.params.id);
-  console.log("tu smo")
+  console.log("tu smo");
   const [competition, games] = await Promise.all([
     db
       .select()
@@ -197,19 +217,28 @@ app.get("/competition/:id", async (req, res) => {
             game.winner === "home"
               ? "bg-blue-200"
               : game.winner === "draw"
-                ? "bg-yellow-200"
-                : "bg-red-200",
+              ? "bg-yellow-200"
+              : "bg-red-200",
           awayTeamColor:
             game.winner === "away"
               ? "bg-blue-200"
               : game.winner === "draw"
-                ? "bg-yellow-200"
-                : "bg-red-200",
+              ? "bg-yellow-200"
+              : "bg-red-200",
         })),
       ),
   ]);
 
-  const teams: Map<string, { name: string, points: number, wins: number, draws: number, losses: number }> = new Map();
+  const teams: Map<
+    string,
+    {
+      name: string;
+      points: number;
+      wins: number;
+      draws: number;
+      losses: number;
+    }
+  > = new Map();
 
   for (let game of games) {
     let homeTeam = teams.get(game.homeTeam);
@@ -233,14 +262,13 @@ app.get("/competition/:id", async (req, res) => {
     }
 
     if (!homeTeam) {
-
       homeTeam = {
         name: game.homeTeam,
         points: homePoints,
         wins: game.winner === "home" ? 1 : 0,
         draws: game.winner === "draw" ? 1 : 0,
-        losses: game.winner === "away" ? 1 : 0
-      }
+        losses: game.winner === "away" ? 1 : 0,
+      };
       teams.set(game.homeTeam, homeTeam);
     } else {
       homeTeam.points += homePoints;
@@ -253,21 +281,20 @@ app.get("/competition/:id", async (req, res) => {
         points: homePoints,
         wins: game.winner === "away" ? 1 : 0,
         draws: game.winner === "draw" ? 1 : 0,
-        losses: game.winner === "home" ? 1 : 0
-      }
+        losses: game.winner === "home" ? 1 : 0,
+      };
       teams.set(game.awayTeam, awayTeam);
     } else {
       awayTeam.points += awayPoints;
     }
-
   }
 
-  const table = Object.values(Object.fromEntries(teams.entries()))
+  const table = Object.values(Object.fromEntries(teams.entries()));
   table.sort((a, b) => {
     if (a.points > b.points) return -1;
     if (a.points === b.points) return 0;
     return 1;
-  })
+  });
 
   const isOwner = competition.ownerId === req.oidc.user?.sid;
   return res.render("competition.pug", {
@@ -294,7 +321,7 @@ if (externalUrl) {
       },
       app,
     )
-    .listen(port, function() {
+    .listen(port, function () {
       console.log(`Server running at https://localhost:${port}/`);
     });
 }
