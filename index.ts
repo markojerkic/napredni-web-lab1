@@ -1,7 +1,7 @@
 import express from "express";
 import { ConfigParams, auth, requiresAuth } from "express-openid-connect";
-import fs from "node:fs";
-import https from "node:https";
+import fs from "fs";
+import https from "https";
 import bodyParser from "body-parser";
 import { enumType, object, parse, record, string } from "valibot";
 import postgres from "postgres";
